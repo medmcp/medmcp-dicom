@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-04-20
+
 ### Added
 
-- Initial template scaffold: pyproject + uv, ruff + pyright strict, pytest, just, pre-commit
-- GitHub Actions CI workflow (lint, format-check, pyright, pytest on py3.12 / 3.13)
-- Contributor docs: README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY
-- Issue and PR templates with medical-context PHI warnings
-- Rename helper script for one-shot placeholder replacement
+- `explore_data` tool: recursively scans a DICOM directory tree and returns a
+  structured inventory grouped by Patient → Study → Series. Reads headers only
+  (`stop_before_pixels=True`) for speed. Returns `BodyPartExamined`, modality,
+  series/study descriptions, instance count, image dimensions, pixel spacing,
+  and slice thickness. PHI excluded by default (`include_phi=False`).
+- FastMCP server over stdio with autodiscovery via `[medmcp.stacks]` entry point.
+- SKILL.md and TOOLS.md for LLM workflow guidance and tool reference.
+- Full CI: ruff lint/format, pyright strict, pytest on Python 3.12 / 3.13.
