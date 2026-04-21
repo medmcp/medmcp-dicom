@@ -59,35 +59,24 @@ def explore_data(
 ) -> dict[str, Any]:
     """Scan a directory tree and return a structured inventory of DICOM data.
 
-    Reads only DICOM headers (no pixel data) for speed. Files that cannot be
-    parsed as DICOM are silently counted in ``summary.skipped_files``.
-
-    Results are grouped hierarchically: Patient → Study → Series. Each series
-    entry aggregates metadata from all its instances (slices).
+    Reads only DICOM headers (no pixel data) for speed. Non-DICOM files are
+    counted in ``summary.skipped_files`` and otherwise ignored. Results are
+    grouped Patient → Study → Series; each series aggregates metadata from
+    all its instances (slices).
 
     Args:
-        root_dir: Root directory to scan recursively.
-        include_phi: If True, include PatientName and PatientID in the output.
-            Defaults to False. Set to True only when working in a controlled,
-            de-identification-aware environment.
-        summary_only: If True, return only the ``summary`` block and omit the
-            ``patients`` list. **Default to True.** Only set False when you
-            need series-level detail to select a specific series for
-            processing (e.g. to identify a series by description before
-            calling a processing tool).
+        root_dir: Root directory to scan recursively (tool walks all subdirs).
+        include_phi: Include PatientName and real PatientID. Only set True
+            when the user explicitly requests patient identifiers.
+        summary_only: Return only the ``summary`` block; ``patients`` will be
+            an empty list. Use True for an initial overview, False to get
+            per-series detail needed to select a specific series.
 
     Returns:
-        A dict with two keys:
-
-        - ``summary``: total counts, date range, modality breakdown, and
-          body-part breakdown across the scanned directory.
-        - ``patients``: list of patient entries, each containing studies,
-          each containing series with per-series metadata. Empty list when
-          ``summary_only=True``.
-
-    After calling this tool, always report the ``summary`` counts to the user
-    (patients, studies, series, instances, skipped_files) before elaborating
-    on individual series.
+        Dict with ``summary`` (aggregate counts, date range, modalities,
+        body parts) and ``patients`` (per-patient/study/series breakdown,
+        empty when ``summary_only=True``). Also contains ``_render`` with
+        display instructions for this specific result.
     """
     root = Path(root_dir)
     if not root.is_dir():
@@ -213,9 +202,53 @@ def explore_data(
             patient_entry["studies"] = study_list
             patients.append(patient_entry)
 
+    n_patients = len(registry)
+
+    if summary_only and n_patients > 3:
+        next_action = (
+            "Large dataset (> 3 patients): render the statistics table only — "
+            "do NOT enumerate patients, studies, or series. Stop after the last table."
+        )
+    elif summary_only and n_patients <= 3:
+        next_action = (
+            f"Small dataset ({n_patients} patient(s)): call explore_data again with "
+            "summary_only=False to retrieve per-series detail, then render the "
+            "per-patient breakdown below the statistics table."
+        )
+    else:
+        next_action = (
+            "Render the per-patient breakdown below the statistics table.\n"
+            "Per study, check series_count:\n"
+            "• series_count > 10 → COLLAPSED FORMAT — group by (modality, body_part, shape).\n"
+            "  Columns: Modality | Body part | Series | Slices each | Resolution.\n"
+            "  'Series' = group count; 'Slices each' = instance count if uniform, else min-max.\n"
+            "  'Resolution' = Rows×Cols px, x×y mm; omit column if pixel_spacing absent for all.\n"  # noqa: RUF001
+            "  Omit 'Body part' column if absent for all groups.\n"
+            "• series_count ≤ 10 → INDIVIDUAL FORMAT — one row per series.\n"
+            "  Columns: Series | Modality | Body part | Slices | Resolution.\n"
+            "  'Resolution' = Rows×Cols px; append ', x×y mm' when pixel_spacing_mm non-null.\n"  # noqa: RUF001
+            "  Omit 'Body part' column if absent for all series.\n"
+            "  Omit 'Resolution' column if absent for all series."
+        )
+
+    render = (
+        "DISPLAY RULES — follow exactly:\n"
+        "• Use '—' (em dash U+2014) for every null or missing value.\n"
+        "• Omit UIDs unless the user asks for them.\n"
+        "• After the final table, stop. Do not add commentary, restatements, or suggestions.\n"
+        f"• Statistics table header: **DICOM Overview** — `{root_dir}`\n"
+        "• Statistics table rows (in order): Patients, Studies, Series, Instances;\n"
+        "  Date range YYYY-MM-DD – YYYY-MM-DD (omit row when study_date_range is null);\n"  # noqa: RUF001
+        "  Skipped files N (omit row when skipped_files is 0).\n"
+        "• **Modalities** table — columns: Modality | Series — preserve pre-sorted order.\n"
+        "• **Anatomical regions** table — columns: Body part | Series — omit if body_parts\n"
+        '  is empty or its only key is ""; render "" key as \'—\'.\n'
+        f"NEXT ACTION: {next_action}"
+    )
+
     return {
         "summary": {
-            "patients": len(registry),
+            "patients": n_patients,
             "studies": total_studies,
             "series": total_series,
             "instances": total_instances,
@@ -225,4 +258,5 @@ def explore_data(
             "body_parts": body_parts,
         },
         "patients": patients,
+        "_render": render,
     }

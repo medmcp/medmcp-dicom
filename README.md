@@ -11,7 +11,7 @@ DICOM data discovery and exploration tools for the [medmcp](https://github.com/m
 
 | Tool name | Description | Inputs | Outputs |
 |---|---|---|---|
-| `explore_data` | Scan a directory tree and return a structured inventory of DICOM data grouped by Patient → Study → Series | `root_dir: Path`, `include_phi: bool = False` | `{"summary": {...}, "patients": [...]}` |
+| `explore_data` | Scan a directory tree and return a structured inventory of DICOM data grouped by Patient → Study → Series | `root_dir: Path`, `include_phi: bool = False`, `summary_only: bool = True` | `{"summary": {...}, "patients": [...], "_render": "..."}` |
 
 ### Model / weights provenance
 
