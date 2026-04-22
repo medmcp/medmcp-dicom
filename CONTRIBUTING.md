@@ -108,12 +108,12 @@ uv run ruff format
 
 Each medmcp package exposes its functionality as MCP tools — plain typed Python functions that an LLM agent invokes by name. When adding one:
 
-1. Add a typed function with a Google-style docstring to `src/<pkg>/tools/<group>.py`. One file per logical group of related tools.
+1. Add a typed function with a Google-style docstring to `src/<pkg>/tools/<group>.py`. One file per logical group of related tools. Shared DICOM utilities belong in `tools/_dicom.py`.
 2. Register it in `server.py`: `mcp.add_tool(your_function)`.
-3. Add unit tests in `tests/test_tools.py` — call the function directly, no server needed.
+3. Add unit tests in `tests/test_<group>.py` — call the function directly, no server needed.
 4. Add a row to the tool inventory table in `README.md`.
-5. Add a matching entry to `skills/<pkg>/references/TOOLS.md`.
-6. If the tool changes the recommended workflow, update `skills/<pkg>/SKILL.md`.
+5. If the tool introduces a new task workflow, create `src/<pkg>/skills/<task-name>/SKILL.md`
+   with workflow steps and gotchas. If it extends an existing workflow, update that skill instead.
 
 **Write precise docstrings.** FastMCP derives the tool's `name`, `description`, and `inputSchema` directly from the function signature and docstring — the LLM reads them verbatim when deciding which tool to call and how.
 
