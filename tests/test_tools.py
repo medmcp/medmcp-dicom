@@ -94,11 +94,14 @@ def test_summary_counts(dicom_dir: Path) -> None:
 
 
 def test_summary_aggregations(dicom_dir: Path) -> None:
-    """Summary carries modality counts, body_part counts, and date range."""
+    """Summary carries modality breakdown, non_imaging, and date range."""
     result = explore_data(dicom_dir)
     s = result["summary"]
-    assert s["modalities"] == {"CT": 1, "MR": 1}
-    assert s["body_parts"] == {"": 2}
+    breakdown = s["modality_breakdown"]
+    modalities_in_breakdown = {r["modality"] for r in breakdown}
+    assert modalities_in_breakdown == {"CT", "MR"}
+    assert all(r["series"] >= 1 for r in breakdown)
+    assert s["non_imaging"] == {}
     assert s["study_date_range"] == {"min": "2024-01-01", "max": "2024-01-01"}
 
 
@@ -177,8 +180,8 @@ def test_empty_directory(tmp_path: Path) -> None:
         "instances": 0,
         "skipped_files": 0,
         "study_date_range": None,
-        "modalities": {},
-        "body_parts": {},
+        "modality_breakdown": [],
+        "non_imaging": {},
     }
     assert result["patients"] == []
 

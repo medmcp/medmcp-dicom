@@ -29,6 +29,7 @@ classifiers = [
 keywords = ["medical", "dicom", "image processing", "ai-agent", "mcp"]
 requires-python = ">=3.12"
 dependencies = [
+    "dcm2niix>=1.0.20250506",
     "mcp>=1.0",
     "pydicom>=3.0",
 ]
