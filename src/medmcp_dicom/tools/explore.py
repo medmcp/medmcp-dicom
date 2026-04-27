@@ -40,6 +40,9 @@ def _format_person_name(raw: Any) -> str:
     return family or given
 
 
+_NON_IMAGING = frozenset({"SR", "PR", "KO", "SC", "RWV", "SEG", "RTSTRUCT", "RTPLAN", "RTDOSE"})
+
+
 def _study_sort_key(item: tuple[str, dict[str, list[dict[str, Any]]]]) -> tuple[str, str]:
     first_inst = next(iter(item[1].values()))[0]
     return (str(first_inst["study_date"]), item[0])
@@ -129,8 +132,8 @@ def explore_data(
     total_studies = 0
     total_series = 0
     total_instances = 0
-    modality_counts: dict[str, int] = {}
-    body_part_counts: dict[str, int] = {}
+    combo_counts: dict[str, int] = {}  # "MODALITY|body_part"
+    non_imaging_counts: dict[str, int] = {}
     study_dates: list[str] = []
 
     for studies in registry.values():
@@ -142,8 +145,13 @@ def explore_data(
                 study_dates.append(first_inst["study_date"])
             for instances in series_dict.values():
                 rep = instances[0]
-                modality_counts[rep["modality"]] = modality_counts.get(rep["modality"], 0) + 1
-                body_part_counts[rep["body_part"]] = body_part_counts.get(rep["body_part"], 0) + 1
+                modality = rep["modality"]
+                body_part = rep["body_part"] or ""
+                if modality in _NON_IMAGING:
+                    non_imaging_counts[modality] = non_imaging_counts.get(modality, 0) + 1
+                else:
+                    combo_key = f"{modality}|{body_part}"
+                    combo_counts[combo_key] = combo_counts.get(combo_key, 0) + 1
                 total_instances += len(instances)
 
     date_range: dict[str, str] | None = (
@@ -151,8 +159,16 @@ def explore_data(
         if study_dates
         else None
     )
-    modalities = dict(sorted(modality_counts.items(), key=lambda x: (-x[1], x[0])))
-    body_parts = dict(sorted(body_part_counts.items(), key=lambda x: (-x[1], x[0])))
+    non_imaging = dict(sorted(non_imaging_counts.items(), key=lambda x: (-x[1], x[0])))
+    # Build sorted cross-tab: [{"modality": ..., "body_part": ..., "series": ...}, ...]
+    modality_breakdown: list[dict[str, Any]] = sorted(
+        (
+            {"modality": mod, "body_part": bp or None, "series": cnt}
+            for (key, cnt) in combo_counts.items()
+            for mod, bp in [key.split("|", 1)]
+        ),
+        key=lambda r: (r["modality"] or "", -r["series"], r["body_part"] or ""),
+    )
 
     # --- patient/study/series build pass (skipped when summary_only=True) ---
     patients: list[dict[str, Any]] = []
@@ -231,6 +247,13 @@ def explore_data(
             "  Omit 'Resolution' column if absent for all series."
         )
 
+    non_imaging_note = (
+        "> **Non-imaging objects** (will not convert to NIfTI): "
+        + ", ".join(f"{m} ({c})" for m, c in non_imaging.items())
+        + " — display as a note after the breakdown table.\n"
+        if non_imaging
+        else ""
+    )
     render = (
         "DISPLAY RULES — follow exactly:\n"
         "• Use '—' (em dash U+2014) for every null or missing value.\n"
@@ -240,10 +263,12 @@ def explore_data(
         "• Statistics table rows (in order): Patients, Studies, Series, Instances;\n"
         "  Date range YYYY-MM-DD – YYYY-MM-DD (omit row when study_date_range is null);\n"  # noqa: RUF001
         "  Skipped files N (omit row when skipped_files is 0).\n"
-        "• **Modalities** table — columns: Modality | Series — preserve pre-sorted order.\n"
-        "• **Anatomical regions** table — columns: Body part | Series — omit if body_parts\n"
-        '  is empty or its only key is ""; render "" key as \'—\'.\n'
-        f"NEXT ACTION: {next_action}"
+        "• **Modality breakdown** table — replace the old separate Modalities and Anatomical\n"
+        "  regions tables with ONE combined table using modality_breakdown from the result.\n"
+        "  Columns: Modality | Body part | Series — preserve pre-sorted order (modality A→Z, then series desc within each modality).\n"  # noqa: E501
+        "  Render body_part null as '—'. Omit 'Body part' column only if ALL rows have null.\n"
+        + non_imaging_note
+        + f"NEXT ACTION: {next_action}"
     )
 
     return {
@@ -254,8 +279,8 @@ def explore_data(
             "instances": total_instances,
             "skipped_files": skipped,
             "study_date_range": date_range,
-            "modalities": modalities,
-            "body_parts": body_parts,
+            "modality_breakdown": modality_breakdown,
+            "non_imaging": non_imaging,
         },
         "patients": patients,
         "_render": render,
