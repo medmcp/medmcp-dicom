@@ -93,7 +93,7 @@ def test_render_omits_tr_line_for_3d(tmp_path: Path) -> None:
     p = tmp_path / "img.nii.gz"
     _save_nifti(p, (64, 64, 32))
     result = inspect_nifti(p)
-    assert "TR:" not in result["_render"]
+    assert "| TR |" not in result["_render"]
 
 
 def test_render_includes_tr_line_for_4d(tmp_path: Path) -> None:
@@ -101,7 +101,7 @@ def test_render_includes_tr_line_for_4d(tmp_path: Path) -> None:
     p = tmp_path / "bold.nii.gz"
     _save_nifti(p, (64, 64, 36, 100), tr=2.0)
     result = inspect_nifti(p)
-    assert "TR:" in result["_render"]
+    assert "| TR |" in result["_render"]
 
 
 def test_nifti2_version_detected(tmp_path: Path) -> None:

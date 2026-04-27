@@ -50,21 +50,20 @@ def inspect_nifti(path: Path) -> dict[str, Any]:
     file_size_mb = round(resolved.stat().st_size / (1024 * 1024), 2)
     nifti_version: int = 2 if isinstance(img, nib.Nifti2Image) else 1  # type: ignore[reportUnknownMemberType]
 
-    volumes_clause = f" ({n_volumes} volumes)" if is_4d else ""
-    tr_line = f"  TR: {tr_sec} s\n" if tr_sec is not None else ""
+    shape_str = " × ".join(str(d) for d in shape)  # noqa: RUF001
+    voxel_str = f"{voxel_size_mm[0]} × {voxel_size_mm[1]} × {voxel_size_mm[2]} mm"  # noqa: RUF001
+    tr_row = f"| TR | {tr_sec} s |\n" if tr_sec is not None else ""
+    volumes_row = f"| Volumes | {n_volumes} |\n" if is_4d else ""
     render = (
-        "DISPLAY RULES — follow exactly:\n"
-        "Report the following fields as a compact key-value list:\n"
-        f"  File: {resolved}\n"
-        f"  Shape: {shape}{volumes_clause}\n"
-        f"  Voxel size: {voxel_size_mm[0]} × {voxel_size_mm[1]} × {voxel_size_mm[2]} mm\n"  # noqa: RUF001
-        + tr_line
-        + f"  Data type: {dtype}\n"
-        f"  Orientation: {orientation}\n"
-        f"  File size: {file_size_mb} MB\n"
-        f"  NIfTI version: {nifti_version}\n"
-        "NEXT ACTION: Report these values to the user, "
-        "then ask what they would like to do with this image."
+        "| Field | Value |\n"
+        "|---|---|\n"
+        f"| File | `{resolved}` |\n"
+        f"| Shape | {shape_str} |\n"
+        f"| Voxel size | {voxel_str} |\n" + tr_row + volumes_row + f"| Data type | {dtype} |\n"
+        f"| Orientation | {orientation} |\n"
+        f"| File size | {file_size_mb} MB |\n"
+        f"| NIfTI version | {nifti_version} |\n"
+        "\nNEXT ACTION: Display the table above to the user."
     )
 
     return {
