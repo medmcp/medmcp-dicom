@@ -11,7 +11,7 @@ license: Apache-2.0
 
 ### Step 1 — Gather inputs and confirm
 
-Ask the user for two things only:
+Ask the user for two things only. Provide suggested paths for both:
 - **dicom_root**: root directory of the DICOM data (tool scans recursively)
 - **output_dir**: where to write the BIDS dataset
 
@@ -24,8 +24,8 @@ not placeholders:
 
 > **Proposed settings**
 > - DICOM source: `/data/study_2024`
-> - BIDS output: `/data/bids_out`
-> - Dataset name: `study_2024_bids`
+> - BIDS output: `/data/study_2024_bids`
+> - Dataset name: `study_2024`
 >
 > Reply **yes** to proceed, or provide a different dataset name.
 
