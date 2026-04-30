@@ -7,7 +7,7 @@ import pydicom.uid
 import pytest
 from pydicom.dataset import FileDataset, FileMetaDataset
 
-from medmcp_dicom.tools.explore import explore_data
+from medmcp_dicom.tools.explore_dicom import explore_dicom
 
 
 def _write_dicom(
@@ -84,7 +84,7 @@ def dicom_dir(tmp_path: Path) -> Path:
 
 def test_summary_counts(dicom_dir: Path) -> None:
     """Summary counts match the written fixture."""
-    result = explore_data(dicom_dir)
+    result = explore_dicom(dicom_dir)
     s = result["summary"]
     assert s["patients"] == 2
     assert s["studies"] == 2
@@ -95,7 +95,7 @@ def test_summary_counts(dicom_dir: Path) -> None:
 
 def test_summary_aggregations(dicom_dir: Path) -> None:
     """Summary carries modality breakdown, non_imaging, and date range."""
-    result = explore_data(dicom_dir)
+    result = explore_dicom(dicom_dir)
     s = result["summary"]
     breakdown = s["modality_breakdown"]
     modalities_in_breakdown = {r["modality"] for r in breakdown}
@@ -107,7 +107,7 @@ def test_summary_aggregations(dicom_dir: Path) -> None:
 
 def test_summary_only_omits_patients(dicom_dir: Path) -> None:
     """summary_only=True returns correct counts but an empty patients list."""
-    result = explore_data(dicom_dir, summary_only=True)
+    result = explore_dicom(dicom_dir, summary_only=True)
     assert result["summary"]["patients"] == 2
     assert result["summary"]["series"] == 2
     assert result["patients"] == []
@@ -115,7 +115,7 @@ def test_summary_only_omits_patients(dicom_dir: Path) -> None:
 
 def test_phi_excluded_by_default(dicom_dir: Path) -> None:
     """Real patient IDs are not exposed when include_phi=False."""
-    result = explore_data(dicom_dir, summary_only=False)
+    result = explore_dicom(dicom_dir, summary_only=False)
     for patient in result["patients"]:
         assert patient["patient_id"].startswith("PATIENT_")
         assert "patient_name" not in patient
@@ -123,7 +123,7 @@ def test_phi_excluded_by_default(dicom_dir: Path) -> None:
 
 def test_phi_included_when_requested(dicom_dir: Path) -> None:
     """Real patient IDs and names are present when include_phi=True."""
-    result = explore_data(dicom_dir, include_phi=True, summary_only=False)
+    result = explore_dicom(dicom_dir, include_phi=True, summary_only=False)
     ids = {p["patient_id"] for p in result["patients"]}
     assert "P001" in ids
     assert "P002" in ids
@@ -133,7 +133,7 @@ def test_phi_included_when_requested(dicom_dir: Path) -> None:
 
 def test_series_metadata(dicom_dir: Path) -> None:
     """Series entries carry the expected metadata fields."""
-    result = explore_data(dicom_dir, include_phi=True, summary_only=False)
+    result = explore_dicom(dicom_dir, include_phi=True, summary_only=False)
     ct_patient = next(p for p in result["patients"] if p["patient_id"] == "P001")
     series = ct_patient["studies"][0]["series"][0]
 
@@ -164,7 +164,7 @@ def test_body_part_examined(tmp_path: Path) -> None:
         series_uid=pydicom.uid.generate_uid(),
     )
 
-    result = explore_data(tmp_path, include_phi=True, summary_only=False)
+    result = explore_dicom(tmp_path, include_phi=True, summary_only=False)
     series_by_patient = {p["patient_id"]: p["studies"][0]["series"][0] for p in result["patients"]}
     assert series_by_patient["P1"]["body_part"] == "CHEST"
     assert series_by_patient["P2"]["body_part"] is None
@@ -172,7 +172,7 @@ def test_body_part_examined(tmp_path: Path) -> None:
 
 def test_empty_directory(tmp_path: Path) -> None:
     """Empty directory returns zero counts without error."""
-    result = explore_data(tmp_path)
+    result = explore_dicom(tmp_path)
     assert result["summary"] == {
         "patients": 0,
         "studies": 0,
@@ -190,7 +190,7 @@ def test_non_dicom_files_counted_as_skipped(tmp_path: Path) -> None:
     """Non-DICOM files increment skipped_files, not instances."""
     (tmp_path / "report.pdf").write_bytes(b"%PDF-1.4 fake")
     (tmp_path / "image.jpg").write_bytes(b"\xff\xd8\xff fake")
-    result = explore_data(tmp_path)
+    result = explore_dicom(tmp_path)
     assert result["summary"]["skipped_files"] == 2
     assert result["summary"]["instances"] == 0
 
@@ -198,7 +198,7 @@ def test_non_dicom_files_counted_as_skipped(tmp_path: Path) -> None:
 def test_nonexistent_directory_raises(tmp_path: Path) -> None:
     """Non-existent root_dir raises ValueError instead of silently returning empty."""
     with pytest.raises(ValueError, match="does not exist"):
-        explore_data(tmp_path / "does_not_exist")
+        explore_dicom(tmp_path / "does_not_exist")
 
 
 def test_recursive_scan(tmp_path: Path) -> None:
@@ -209,7 +209,7 @@ def test_recursive_scan(tmp_path: Path) -> None:
     _write_dicom(
         subdir / "slice.dcm", patient_id="P1", study_uid=uid, series_uid=pydicom.uid.generate_uid()
     )
-    result = explore_data(tmp_path)
+    result = explore_dicom(tmp_path)
     assert result["summary"]["instances"] == 1
 
 
@@ -222,7 +222,7 @@ def test_patients_sorted_by_id(tmp_path: Path) -> None:
             study_uid=pydicom.uid.generate_uid(),
             series_uid=pydicom.uid.generate_uid(),
         )
-    result = explore_data(tmp_path, include_phi=True, summary_only=False)
+    result = explore_dicom(tmp_path, include_phi=True, summary_only=False)
     ids = [p["patient_id"] for p in result["patients"]]
     assert ids == ["A001", "B001", "C001"]
 
@@ -237,7 +237,7 @@ def test_studies_sorted_by_date(tmp_path: Path) -> None:
             series_uid=pydicom.uid.generate_uid(),
             study_date=date,
         )
-    result = explore_data(tmp_path, include_phi=True, summary_only=False)
+    result = explore_dicom(tmp_path, include_phi=True, summary_only=False)
     dates = [s["study_date"] for s in result["patients"][0]["studies"]]
     assert dates == ["2021-01-01", "2023-06-01"]
 
@@ -251,7 +251,7 @@ def test_patient_name_formatted(tmp_path: Path) -> None:
         study_uid=uid,
         series_uid=pydicom.uid.generate_uid(),
     )
-    result = explore_data(tmp_path, include_phi=True, summary_only=False)
+    result = explore_dicom(tmp_path, include_phi=True, summary_only=False)
     # _write_dicom sets PatientName = "Patient^P001" → formatted as "P001 Patient"
     assert result["patients"][0]["patient_name"] == "P001 Patient"
 
@@ -267,7 +267,7 @@ def test_series_sorted_by_series_number(tmp_path: Path) -> None:
             series_uid=pydicom.uid.generate_uid(),
             series_number=number,
         )
-    result = explore_data(tmp_path, include_phi=True, summary_only=False)
+    result = explore_dicom(tmp_path, include_phi=True, summary_only=False)
     series = result["patients"][0]["studies"][0]["series"]
     numbers = [s["series_number"] for s in series]
     assert numbers == ["1", "2", "3"]

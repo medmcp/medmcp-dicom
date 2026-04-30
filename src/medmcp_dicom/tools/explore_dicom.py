@@ -1,4 +1,4 @@
-"""DICOM data discovery tool."""
+"""DICOM dataset discovery tool."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ def _series_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, str]:
         return (9999, item[0])
 
 
-def explore_data(
+def explore_dicom(
     root_dir: Path,
     include_phi: bool = False,
     summary_only: bool = True,
@@ -227,7 +227,7 @@ def explore_data(
         )
     elif summary_only and n_patients <= 3:
         next_action = (
-            f"Small dataset ({n_patients} patient(s)): call explore_data again with "
+            f"Small dataset ({n_patients} patient(s)): call explore_dicom again with "
             "summary_only=False to retrieve per-series detail, then render the "
             "per-patient breakdown below the statistics table."
         )
