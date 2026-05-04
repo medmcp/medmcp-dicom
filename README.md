@@ -17,6 +17,16 @@ DICOM data discovery, conversion, and BIDS organisation tools for the [medmcp](h
 | `build_bids_dataset` | Convert a DICOM directory tree into a BIDS-organised dataset. Load the `dcm-to-bids` skill before calling | `dicom_root: Path`, `output_dir: Path`, `dataset_name: str \| None = None`, `anonymize: bool = True` | `{"output_dir": "...", "subjects": N, "sessions": N, "files_created": N, ..., "_render": "..."}` |
 | `inspect_nifti` | Read a NIfTI file's header and return structured metadata (shape, voxel size, TR, orientation, dtype, file size, NIfTI version). Read-only; no pixel data loaded | `path: Path` | `{"path": "...", "shape": [...], "voxel_size_mm": [...], "tr_sec": float\|null, "n_volumes": int\|null, "dtype": "...", "orientation": "...", "file_size_mb": float, "nifti_version": int, "_render": "..."}` |
 
+## Skill inventory
+
+Skills are SKILL.md files the agent loads on demand to follow multi-step workflows. They are bundled under `src/medmcp_dicom/skills/` and discovered automatically via `server_config()`.
+
+| Skill name | Description |
+|---|---|
+| `dcm-to-bids` | Step-by-step workflow for converting a DICOM directory tree into a BIDS dataset, including confirmation prompts, anonymisation guidance, and gotchas (unclassified series, DWI sidecars, duplicate runs). |
+
+---
+
 ### Model / weights provenance
 
 N/A — no pretrained weights.
