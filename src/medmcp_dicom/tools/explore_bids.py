@@ -43,6 +43,8 @@ def explore_bids(
 ) -> dict[str, Any]:
     """Scan a BIDS dataset directory and return a structured inventory.
 
+    Only call this tool when the user explicitly asks to explore or inspect a BIDS dataset.
+
     Reads only the directory structure and file sizes — no image data is loaded.
     Only NIfTI files (.nii.gz, .nii) are counted as series; sidecar files
     (.json, .bval, .bvec, .tsv) are ignored. Results are grouped

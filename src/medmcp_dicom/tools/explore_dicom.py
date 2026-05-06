@@ -62,6 +62,8 @@ def explore_dicom(
 ) -> dict[str, Any]:
     """Scan a directory tree and return a structured inventory of DICOM data.
 
+    Only call this tool when the user explicitly asks to explore or inspect DICOM data.
+
     Reads only DICOM headers (no pixel data) for speed. Non-DICOM files are
     counted in ``summary.skipped_files`` and otherwise ignored. Results are
     grouped Patient → Study → Series; each series aggregates metadata from
