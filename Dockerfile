@@ -6,6 +6,9 @@
 ARG BASE_IMAGE=medmcp-base:dev
 FROM ${BASE_IMAGE} AS runtime
 
+# Stack metadata for one-click install/discovery (read via `docker inspect`).
+LABEL org.medmcp.stack='{"name": "medmcp-dicom", "gpu": false, "tool_timeout_sec": 1800, "skills_path": "/app/src/medmcp_dicom/skills"}'
+
 WORKDIR /app
 
 # Frozen install from the committed lock (build-time network; runtime offline).
