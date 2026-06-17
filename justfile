@@ -57,3 +57,9 @@ test *ARGS:
 fix:
     uv run ruff check --fix
     uv run ruff format
+
+# Build this stack's container image (stdio MCP server). Requires medmcp-base —
+# build it once from the core repo: `just docker-base` in medmcp-dev. The core
+# launches this image on demand via a stacks.d/medmcp-dicom.toml manifest.
+docker-build TAG="medmcp-dicom:dev":
+    docker build -t {{TAG}} .
