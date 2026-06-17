@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Container image: `Dockerfile` (`FROM medmcp-base`, stdio MCP server, multi-arch) + `.dockerignore`; `org.medmcp.stack` label for one-click install; `.devcontainer`; CI publishes to the private `ghcr.io/medmcp/dicom`.
+
 - `convert_dcm_to_nifti` tool: converts all DICOM series under a directory to
   compressed NIfTI (`.nii.gz`) with BIDS-compatible JSON sidecars. DWI series
   additionally produce `.bval`/`.bvec` files. Intended for single-study use.
