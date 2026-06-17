@@ -33,11 +33,23 @@ N/A — no pretrained weights.
 
 ### Hardware requirements
 
-CPU-only. `explore_dicom` reads DICOM headers only (no pixel data). `explore_bids` reads only directory structure and file sizes. `convert_dcm_to_nifti` and `build_bids_dataset` call [`dcm2niix`](https://github.com/rordenlab/dcm2niix), which is installed automatically as a package dependency.
+CPU-only. `explore_dicom` reads DICOM headers only (no pixel data). `explore_bids` reads only directory structure and file sizes. `convert_dcm_to_nifti` and `build_bids_dataset` call [`dcm2niix`](https://github.com/rordenlab/dcm2niix), which is installed automatically as a package dependency. (The container image derives from the shared CUDA base `medmcp-base` for layer-sharing across the fleet, but this stack performs no GPU computation.)
 
 ---
 
 ## Development
+
+### Develop in the dev container (recommended)
+
+This repo ships a dev container (`.devcontainer/`) with the full toolchain
+(Python 3.12 + uv, `just`, git, Docker CLI). It derives from the shared
+`medmcp-base` image, so build that once from the core repo first (`just docker-base`
+in `medmcp-dev`). Then open the repo with the **Dev Container** action in PyCharm
+(2024.2+) or **Reopen in Container** in VS Code — `uv sync` runs on first start.
+See the core repo's [CONTRIBUTING](https://github.com/medmcp/medmcp-dev/blob/main/CONTRIBUTING.md)
+for IDE specifics.
+
+### Local install (alternative)
 
 ```bash
 just setup     # install uv, sync dev environment, register pre-commit hooks
@@ -45,13 +57,27 @@ just check     # lint + format-check + typecheck + tests
 just fix       # auto-fix lint and format
 ```
 
-### Install for local agent use
+For local agent use, install the stack into its own uv tool environment:
 
 ```bash
 uv tool install --editable .
 ```
 
 The package registers itself via the `[medmcp.stacks]` entry point. The local agent autodiscovers it on the next session — no manual config needed.
+
+### Container image (deployment)
+
+This stack also ships as a container with a fixed environment:
+
+```bash
+just docker-build           # build medmcp-dicom:dev (FROM medmcp-base)
+```
+
+It is a stdio MCP server (`ENTRYPOINT ["tini", "--", "medmcp-dicom"]`). The medmcp
+**core** launches it on demand via a `stacks.d/medmcp-dicom.toml` manifest
+(`docker run -i …`), so deployment nodes need no host Python install. The image is
+cleanly multi-arch (amd64 + arm64 — all deps, incl. `dcm2niix`, have aarch64
+wheels).
 
 ---
 
