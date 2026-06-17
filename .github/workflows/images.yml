@@ -1,11 +1,14 @@
 name: Image
 
-# Build + push the dicom stack image to the private GHCR.
+# On push to main: build + push the dicom stack image to the private GHCR.
+# On pull_request: build only (validates the Dockerfile) — no push.
 # FROM ghcr.io/medmcp/base — the base package must grant this repo read access
-# (Package settings -> Manage Actions access). amd64 only for now.
+# (Package settings -> Manage Actions access), and base:main must already be
+# published (run medmcp-dev's Images workflow first). amd64 only for now.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -18,6 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v3
+      # Login on every event — needed to pull the private base, even for PR builds.
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -26,8 +30,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             BASE_IMAGE=ghcr.io/medmcp/base:main
           tags: |
