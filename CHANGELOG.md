@@ -5,18 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0]
+
+First public release. `medmcp-dicom` is the DICOM stack for MedMCP — an MCP server
+exposing tools an agent can call to make sense of unorganised clinical DICOM
+exports: inventory them, convert them to NIfTI, and organise them into BIDS
+datasets.
+
+**Not licensed for clinical use.**
 
 ### Added
 
-- `NOTICE` crediting the bundled conversion tools (dcm2niix BSD-3-Clause, pydicom and
-  nibabel MIT) with licenses and citations; README gains a bundled-tools table and a
-  "Citation" section. The container image redistributes the `dcm2niix` binary, so this
-  is an attribution obligation rather than a courtesy.
-- [all-contributors](https://allcontributors.org) setup (`.all-contributorsrc` + README
-  section) to credit all contribution types.
-- Container image: `Dockerfile` (`FROM medmcp-base`, stdio MCP server, multi-arch) + `.dockerignore`; `org.medmcp.stack` label for one-click install; `.devcontainer`; CI publishes to the private `ghcr.io/medmcp/dicom`.
-
+- `explore_dicom` tool: recursively scans a DICOM directory tree and returns a
+  structured inventory grouped by Patient → Study → Series. Reads headers only
+  (`stop_before_pixels=True`) for speed. Returns `BodyPartExamined`, modality,
+  series/study descriptions, instance count, image dimensions, pixel spacing, and
+  slice thickness. PHI is excluded by default (`include_phi=False`).
+- `explore_bids` tool: scans a BIDS dataset and returns a structured inventory
+  grouped by Subject → Session → Datatype, reading directory structure and file
+  sizes only.
 - `convert_dcm_to_nifti` tool: converts all DICOM series under a directory to
   compressed NIfTI (`.nii.gz`) with BIDS-compatible JSON sidecars. DWI series
   additionally produce `.bval`/`.bvec` files. Intended for single-study use.
@@ -26,44 +33,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keyword heuristics, and calls `dcm2niix` per series. Writes
   `dataset_description.json`, `participants.tsv`, and `.bidsignore`.
   Non-standard modalities and unclassified series are flagged for review.
-- `dcm-to-bids` skill (`skills/dcm-to-bids/SKILL.md`): LLM workflow guide for
-  the BIDS conversion task — input gathering, confirmation step, and gotchas.
-- Internal `tools/_dicom.py` module: `SeriesRecord` dataclass, `scan_series()`,
-  and `find_dcm2niix()` shared across the conversion tools.
-
-### Changed
-
-- Tracks the files shared with [medmcp-template](https://github.com/medmcp/medmcp-template):
-  `scripts/shared-files.txt` lists them, `scripts/sync-from-template.sh` pulls them in,
-  and a **Template drift** workflow reports when one diverges. This first sync picked up
-  a CI action bump that had already landed in the template.
-- `CONTRIBUTING.md` no longer opens with instructions for creating a package from the
-  template — a real stack repo was telling readers to run `scripts/rename.sh`, a script
-  it does not have. It now documents the versioning policy and how to credit
-  contributors, matching the sibling stacks.
-- `CODEOWNERS` removed. It was entirely commented out behind a "replace before the repo
-  goes public" note, so it assigned no ownership and requested no reviews.
-- References to the core repo use its current name, `medmcp`, not the pre-rename
-  `medmcp-dev` — including a link to its contributing guide.
-- The README opens the way the sibling stacks do: links to medmcp.ai and the core
-  repository, and a note that this repo is for people building or extending the stack
-  — using MedMCP needs only the app and a one-click stack install. It also explains the
-  shared-file contract, so a contributor whose pull request trips the drift check can
-  see what it is and how to resolve it.
-- `docker/setup-buildx-action` moved to v4, matching the other stacks. Dependabot had
-  a bump open for it but closed it as "up-to-date now" after a rebase, which it was
-  not — the workflow was still on v3.
-- One image build runs per branch at a time; a superseded pull-request push is cancelled
-  rather than left racing the push that replaced it.
-
-## [0.1.0] — 2026-04-20
-
-### Added
-
-- `explore_data` tool: recursively scans a DICOM directory tree and returns a
-  structured inventory grouped by Patient → Study → Series. Reads headers only
-  (`stop_before_pixels=True`) for speed. Returns `BodyPartExamined`, modality,
-  series/study descriptions, instance count, image dimensions, pixel spacing,
-  and slice thickness. PHI excluded by default (`include_phi=False`).
-- FastMCP server over stdio with autodiscovery via `[medmcp.stacks]` entry point.
-- Full CI: ruff lint/format, pyright strict, pytest on Python 3.12 / 3.13.
+- `inspect_nifti` tool: reads a NIfTI header and returns structured metadata —
+  shape, voxel size, TR, orientation, dtype, file size, NIfTI version. Read-only;
+  no pixel data is loaded.
+- `dcm-to-bids` skill (`skills/dcm-to-bids/SKILL.md`): LLM workflow guide for the
+  BIDS conversion task — input gathering, confirmation step, and gotchas.
+- FastMCP server over stdio with autodiscovery via the `[medmcp.stacks]` entry
+  point.
+- Container image: `Dockerfile` (`FROM medmcp-base`, stdio MCP server, multi-arch
+  amd64 + arm64) + `.dockerignore`; `org.medmcp.stack` label for one-click install
+  from the workspace UI; `.devcontainer` for development.
+- `NOTICE` crediting the bundled conversion tools (dcm2niix BSD-3-Clause, pydicom
+  and nibabel MIT) with licenses and citations, and a matching bundled-tools table
+  and "Citation" section in the README. The container image redistributes the
+  `dcm2niix` binary, so this is an attribution obligation rather than a courtesy.
+- [all-contributors](https://allcontributors.org) setup (`.all-contributorsrc` +
+  README section) to credit all contribution types.
+- Full CI: ruff lint/format, pyright strict, and pytest on Python 3.12 / 3.13, plus
+  multi-arch image builds.
+- Shared-file contract with [medmcp-template](https://github.com/medmcp/medmcp-template):
+  `scripts/shared-files.txt` lists the files every stack takes from the template,
+  `scripts/sync-from-template.sh` pulls them in, and a **Template drift** workflow
+  reports when one diverges.
+- Internal `tools/_dicom.py` module: `SeriesRecord` dataclass, `scan_series()`, and
+  `find_dcm2niix()`, shared across the conversion tools.
