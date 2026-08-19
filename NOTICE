@@ -1,0 +1,45 @@
+medmcp-dicom
+Copyright 2026 Julian McGinnis
+Copyright 2026 Paul Friedrich
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------------
+Bundled conversion tools
+------------------------------------------------------------------------------
+
+medmcp-dicom wraps established third-party DICOM and neuroimaging software, and
+the published container image redistributes the dcm2niix binary. Each remains
+under its own license and carries its own citation requirements; if you use the
+results in research, please cite the underlying methods (see the "Citation"
+section of README.md).
+
+  - dcm2niix (convert_dcm_to_nifti, build_bids_dataset) — DICOM to NIfTI
+    conversion, invoked as a subprocess.
+    BSD-3-Clause, Copyright (c) 2014-2021 Chris Rorden.
+    https://github.com/rordenlab/dcm2niix
+    Cite: Li et al., "The first step for neuroimaging data analysis: DICOM to
+    NIfTI conversion", Journal of Neuroscience Methods 264:47-56 (2016).
+    doi:10.1016/j.jneumeth.2016.03.001
+    dcm2niix incorporates further components under their own terms — public
+    domain (niftilib, miniz), MIT (ujpeg), BSD (OpenJPEG, CharLS), zlib, and
+    JasPer — with the per-file breakdown in the license.txt that ships inside
+    the distributed package.
+    Upstream states that dcm2niix is developed for research purposes only and
+    is not a clinical tool, which matches this project's own position.
+
+  - pydicom (explore_dicom, and DICOM header reading throughout) — pure-Python
+    DICOM library. MIT. https://github.com/pydicom/pydicom
+
+  - nibabel (inspect_nifti, explore_bids) — read/write access to neuroimaging
+    file formats. MIT. https://github.com/nipy/nibabel
+
+No pretrained model weights are bundled or redistributed by this stack.
+
+------------------------------------------------------------------------------
+Bundled libraries
+------------------------------------------------------------------------------
+
+The Python libraries redistributed inside the container image, and their
+transitive dependency closure, each remain under their own license; the full
+license texts travel with each package's distribution.

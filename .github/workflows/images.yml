@@ -26,6 +26,14 @@ permissions:
   contents: read
   packages: write
 
+# One build per ref, matching the other stacks. Builds here are short, so this
+# saves little today; it stops a superseded push from racing the one that
+# replaced it. Pull requests cancel; a push to main does not, because both arch
+# legs have to finish for the merge job to assemble the manifest list.
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   image:
     runs-on: ${{ matrix.runner }}
