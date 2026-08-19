@@ -45,6 +45,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   goes public" note, so it assigned no ownership and requested no reviews.
 - References to the core repo use its current name, `medmcp`, not the pre-rename
   `medmcp-dev` — including a link to its contributing guide.
+- The README opens the way the sibling stacks do: links to medmcp.ai and the core
+  repository, and a note that this repo is for people building or extending the stack
+  — using MedMCP needs only the app and a one-click stack install. It also explains the
+  shared-file contract, so a contributor whose pull request trips the drift check can
+  see what it is and how to resolve it.
 - One image build runs per branch at a time; a superseded pull-request push is cancelled
   rather than left racing the push that replaced it.
 

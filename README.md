@@ -2,6 +2,14 @@
 
 DICOM data discovery, conversion, and BIDS organisation tools for the [medmcp](https://github.com/medmcp) ecosystem. Exposes an **MCP (Model Context Protocol) server** over stdio that an LLM can invoke to help physicians and researchers make sense of unorganised clinical DICOM exports.
 
+<p align="center">
+  <a href="https://medmcp.ai"><b>medmcp.ai</b></a> ·
+  <a href="https://github.com/medmcp/medmcp">Main repository</a>
+</p>
+
+> [!NOTE]
+> **This repository is for developers** who build, extend, or run the DICOM stack from source. **If you just want to use MedMCP, you don't need this repo** — install the MedMCP app and add this stack through the workspace UI (one-click install). See [medmcp.ai](https://medmcp.ai) or the [main repository](https://github.com/medmcp/medmcp) to get started.
+
 > [!WARNING]
 > MedMCP and its ecosystem are research software under active development and are **not licensed for clinical use**.
 
@@ -95,6 +103,13 @@ It is a stdio MCP server (`ENTRYPOINT ["tini", "--", "medmcp-dicom"]`). The medm
 (`docker run -i …`), so deployment nodes need no host Python install. The image is
 cleanly multi-arch (amd64 + arm64 — all deps, incl. `dcm2niix`, have aarch64
 wheels).
+
+### Staying in sync with the template
+
+Files shared with [medmcp-template](https://github.com/medmcp/medmcp-template) are
+listed in `scripts/shared-files.txt`. The **Template drift** workflow reports when
+one of them diverges; `./scripts/sync-from-template.sh` pulls them back. A change
+that belongs in every stack goes in the template, not here.
 
 ---
 
