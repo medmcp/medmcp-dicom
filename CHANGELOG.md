@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   — using MedMCP needs only the app and a one-click stack install. It also explains the
   shared-file contract, so a contributor whose pull request trips the drift check can
   see what it is and how to resolve it.
+- `docker/setup-buildx-action` moved to v4, matching the other stacks. Dependabot had
+  a bump open for it but closed it as "up-to-date now" after a rebase, which it was
+  not — the workflow was still on v3.
 - One image build runs per branch at a time; a superseded pull-request push is cancelled
   rather than left racing the push that replaced it.
 
