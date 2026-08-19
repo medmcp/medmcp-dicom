@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `NOTICE` crediting the bundled conversion tools (dcm2niix BSD-3-Clause, pydicom and
+  nibabel MIT) with licenses and citations; README gains a bundled-tools table and a
+  "Citation" section. The container image redistributes the `dcm2niix` binary, so this
+  is an attribution obligation rather than a courtesy.
+- [all-contributors](https://allcontributors.org) setup (`.all-contributorsrc` + README
+  section) to credit all contribution types.
 - Container image: `Dockerfile` (`FROM medmcp-base`, stdio MCP server, multi-arch) + `.dockerignore`; `org.medmcp.stack` label for one-click install; `.devcontainer`; CI publishes to the private `ghcr.io/medmcp/dicom`.
 
 - `convert_dcm_to_nifti` tool: converts all DICOM series under a directory to
@@ -24,6 +30,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the BIDS conversion task — input gathering, confirmation step, and gotchas.
 - Internal `tools/_dicom.py` module: `SeriesRecord` dataclass, `scan_series()`,
   and `find_dcm2niix()` shared across the conversion tools.
+
+### Changed
+
+- Tracks the files shared with [medmcp-template](https://github.com/medmcp/medmcp-template):
+  `scripts/shared-files.txt` lists them, `scripts/sync-from-template.sh` pulls them in,
+  and a **Template drift** workflow reports when one diverges. This first sync picked up
+  a CI action bump that had already landed in the template.
+- `CONTRIBUTING.md` no longer opens with instructions for creating a package from the
+  template — a real stack repo was telling readers to run `scripts/rename.sh`, a script
+  it does not have. It now documents the versioning policy and how to credit
+  contributors, matching the sibling stacks.
+- `CODEOWNERS` removed. It was entirely commented out behind a "replace before the repo
+  goes public" note, so it assigned no ownership and requested no reviews.
+- References to the core repo use its current name, `medmcp`, not the pre-rename
+  `medmcp-dev` — including a link to its contributing guide.
+- One image build runs per branch at a time; a superseded pull-request push is cancelled
+  rather than left racing the push that replaced it.
 
 ## [0.1.0] — 2026-04-20
 

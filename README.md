@@ -27,9 +27,26 @@ Skills are SKILL.md files the agent loads on demand to follow multi-step workflo
 
 ---
 
-### Model / weights provenance
+### Bundled tools
 
-N/A — no pretrained weights.
+`medmcp-dicom` wraps established third-party software, and the container image
+redistributes the `dcm2niix` binary. Each is used under its own license:
+
+| Tool | Used by | Source | License |
+|---|---|---|---|
+| dcm2niix | `convert_dcm_to_nifti`, `build_bids_dataset` | [`dcm2niix`](https://github.com/rordenlab/dcm2niix) package dependency, invoked as a subprocess (baked into the image) | [BSD-3-Clause](https://github.com/rordenlab/dcm2niix/blob/master/license.txt) |
+| pydicom | `explore_dicom`, DICOM header reading | [`pydicom`](https://github.com/pydicom/pydicom) package dependency | [MIT](https://github.com/pydicom/pydicom/blob/main/LICENSE) |
+| nibabel | `inspect_nifti`, `explore_bids` | [`nibabel`](https://github.com/nipy/nibabel) package dependency | [MIT](https://github.com/nipy/nibabel/blob/master/COPYING) |
+
+No pretrained model weights are bundled or redistributed — this stack runs no models.
+
+### Citation
+
+`dcm2niix` is a third-party scientific tool. **If you use `medmcp-dicom` conversion output in research, please cite it:**
+
+- **dcm2niix** — Li X, Morgan PS, Ashburner J, Smith J, Rorden C. The first step for neuroimaging data analysis: DICOM to NIfTI conversion. *Journal of Neuroscience Methods* 264, 47–56 (2016). [doi:10.1016/j.jneumeth.2016.03.001](https://doi.org/10.1016/j.jneumeth.2016.03.001)
+
+Full third-party attribution is in [`NOTICE`](NOTICE).
 
 ### Hardware requirements
 
@@ -44,9 +61,9 @@ CPU-only. `explore_dicom` reads DICOM headers only (no pixel data). `explore_bid
 This repo ships a dev container (`.devcontainer/`) with the full toolchain
 (Python 3.12 + uv, `just`, git, Docker CLI). It derives from the shared
 `medmcp-base` image, so build that once from the core repo first (`just docker-base`
-in `medmcp-dev`). Then open the repo with the **Dev Container** action in PyCharm
+in a `medmcp` checkout). Then open the repo with the **Dev Container** action in PyCharm
 (2024.2+) or **Reopen in Container** in VS Code — `uv sync` runs on first start.
-See the core repo's [CONTRIBUTING](https://github.com/medmcp/medmcp-dev/blob/main/CONTRIBUTING.md)
+See the core repo's [CONTRIBUTING](https://github.com/medmcp/medmcp/blob/main/CONTRIBUTING.md)
 for IDE specifics.
 
 ### Local install (alternative)
@@ -85,6 +102,27 @@ wheels).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: fork, `just setup`, `just check`, open a PR against `main`.
 
+### Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://jqmcginnis.github.io/"><img src="https://avatars.githubusercontent.com/u/33037028?v=4?s=100" width="100px;" alt="Julian McGinnis"/><br /><sub><b>Julian McGinnis</b></sub></a><br /><a href="https://github.com/medmcp/medmcp-dicom/commits?author=jqmcginnis" title="Code">💻</a> <a href="#infra-jqmcginnis" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://pfriedri.github.io"><img src="https://avatars.githubusercontent.com/u/101359393?v=4?s=100" width="100px;" alt="Paul Friedrich"/><br /><sub><b>Paul Friedrich</b></sub></a><br /><a href="https://github.com/medmcp/medmcp-dicom/commits?author=pfriedri" title="Code">💻</a> <a href="https://github.com/medmcp/medmcp-dicom/commits?author=pfriedri" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://allcontributors.org) specification — contributions of any kind are welcome!
+
 ## License
 
-[Apache 2.0](LICENSE)
+[Apache 2.0](LICENSE). Third-party tools bundled by this stack retain their own licenses and are attributed in [`NOTICE`](NOTICE).

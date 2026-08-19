@@ -1,29 +1,8 @@
 # Contributing
 
-Thanks for your interest in contributing to a medmcp ecosystem package.
+Thanks for your interest in contributing to a medmcp ecosystem package. Please be respectful and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-This file lives in [medmcp-template](https://github.com/medmcp/medmcp-template) and is copied into every downstream repo. If you're reading it inside `medmcp-dicom`, `medmcp-neuro`, etc., the same workflow applies — only the repo name differs.
-
-## Creating a new package from this template
-
-### 1) Create a new repo from this template
-
-Click **Use this template** on the [medmcp-template](https://github.com/medmcp/medmcp-template) page to create your new repository (e.g. `medmcp-dicom`).
-
-### 2) Run the rename helper
-
-```bash
-./scripts/rename.sh medmcp-dicom   # replaces medmcp-template / medmcp_template everywhere
-rm scripts/rename.sh
-```
-
-### 3) Finish the setup
-
-- Update `pyproject.toml`: description, keywords, and project URLs.
-- Replace `README.md` with content specific to your package.
-- Verify that `server_config()` in `server.py` returns the correct `name` and `command` — the local agent uses this for autodiscovery via the `[medmcp.stacks]` entry point.
-
----
+This file is shared across the medmcp ecosystem packages. If you're reading it inside `medmcp-dicom`, `medmcp-neuro-core`, etc., the same workflow applies — only the repo name differs.
 
 ## Get started!
 
@@ -50,7 +29,7 @@ The recommended way to work on this package is **inside the dev container**
 (`.devcontainer/`) — it gives everyone the same toolchain (Python 3.12 + uv,
 `just`, git, Docker CLI) and matches the deployment image. It derives from the
 shared `medmcp-base` image, so build that once from the core repo first
-(`just docker-base` in `medmcp-dev`). Then:
+(`just docker-base` in a `medmcp` checkout). Then:
 
 - **PyCharm** (unified PyCharm, 2024.2+; Docker integration is a Professional
   feature): open this project, open `.devcontainer/devcontainer.json`, and use the
@@ -127,12 +106,14 @@ uv run ruff format
 
 Each medmcp package exposes its functionality as MCP tools — plain typed Python functions that an LLM agent invokes by name. When adding one:
 
-1. Add a typed function with a Google-style docstring to `src/<pkg>/tools/<group>.py`. One file per logical group of related tools. Shared DICOM utilities belong in `tools/_dicom.py`.
-2. Register it in `server.py`: `mcp.add_tool(your_function)`.
-3. Add unit tests in `tests/test_<group>.py` — call the function directly, no server needed.
+1. Add a typed function with a Google-style docstring to `src/<pkg>/tools/<group>.py` (one file per logical group of related tools). Return a plain `dict` of JSON-serialisable values that includes a `_render` key with natural-language display instructions for that result, and confine any filesystem writes to an `output_dir` argument. Shared DICOM utilities belong in `tools/_dicom.py`.
+2. Register it in `server.py` with `mcp.add_tool(your_function)`.
+3. Add unit tests in the matching `tests/test_<group>.py` — call the function directly, no server needed. Skip tests that need an absent external binary with a fixture rather than failing.
 4. Add a row to the tool inventory table in `README.md`.
 5. If the tool introduces a new task workflow, create `src/<pkg>/skills/<task-name>/SKILL.md`
    with workflow steps and gotchas. If it extends an existing workflow, update that skill instead.
+
+**Follow the existing conventions.** Match the patterns the current tools already use — for example, every tool that shells out to `dcm2niix` resolves it through `find_dcm2niix()` rather than assuming it is on `PATH`, so a missing binary fails with an install hint instead of an obscure error from deeper in the call. When in doubt, copy the closest existing tool.
 
 **Write precise docstrings.** FastMCP derives the tool's `name`, `description`, and `inputSchema` directly from the function signature and docstring — the LLM reads them verbatim when deciding which tool to call and how.
 
@@ -150,6 +131,28 @@ Each medmcp package exposes its functionality as MCP tools — plain typed Pytho
 3. Push your branch and open a pull request against `main`.
 4. CI runs on every PR — make sure all checks are green before requesting review.
 5. Be responsive to review feedback; small PRs get merged fastest.
+
+## Versioning
+
+This package follows [Semantic Versioning](https://semver.org) (`MAJOR.MINOR.PATCH`). Because the package is consumed by an agent that calls tools by name, the public contract is each tool's **name, parameters, and result shape**:
+
+- **MAJOR** — a breaking change to a tool's name, parameters, or result keys (anything a caller depends on), or removing a tool.
+- **MINOR** — a new tool, a new optional parameter, or another backward-compatible addition.
+- **PATCH** — backward-compatible bug fixes and internal changes.
+
+The version lives in `pyproject.toml`. Record every notable change under the `[Unreleased]` heading in [CHANGELOG.md](CHANGELOG.md) (the format follows [Keep a Changelog](https://keepachangelog.com)). On release, `[Unreleased]` is renamed to the new version with a date and the release commit is tagged `vMAJOR.MINOR.PATCH`.
+
+## Recognizing contributions
+
+This project uses the [all-contributors](https://allcontributors.org) bot to credit everyone who helps — not just code, but documentation, ideas, bug reports, reviews, and more. The list lives in the README and is tracked in `.all-contributorsrc`.
+
+To add someone (or a new contribution type), comment on any issue or pull request:
+
+```
+@all-contributors please add @username for code, doc
+```
+
+The bot opens a pull request that updates `.all-contributorsrc` and the README contributor table — no local setup or CLI needed. Use the [emoji-key](https://allcontributors.org/docs/en/emoji-key) contribution types (e.g. `code`, `doc`, `bug`, `ideas`, `review`, `maintenance`), comma-separated.
 
 ## Reporting issues
 
