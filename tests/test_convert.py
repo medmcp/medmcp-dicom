@@ -1,5 +1,6 @@
 """Tests for convert_dcm_to_nifti."""
 
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
@@ -76,7 +77,10 @@ def test_output_dir_created_if_absent(tmp_path: Path) -> None:
     out = tmp_path / "new" / "output"
     with (
         patch("medmcp_dicom.tools.convert.find_dcm2niix", return_value="/fake/dcm2niix"),
-        patch("medmcp_dicom.tools.convert.subprocess.run"),
+        patch(
+            "medmcp_dicom.tools.convert.subprocess.run",
+            return_value=subprocess.CompletedProcess([], 0, "", ""),
+        ),
     ):
         result = convert_dcm_to_nifti(tmp_path, out)
     assert out.is_dir()
@@ -87,7 +91,10 @@ def test_result_has_render_key(tmp_path: Path) -> None:
     """Result always contains a '_render' key."""
     with (
         patch("medmcp_dicom.tools.convert.find_dcm2niix", return_value="/fake/dcm2niix"),
-        patch("medmcp_dicom.tools.convert.subprocess.run"),
+        patch(
+            "medmcp_dicom.tools.convert.subprocess.run",
+            return_value=subprocess.CompletedProcess([], 0, "", ""),
+        ),
     ):
         result = convert_dcm_to_nifti(tmp_path, tmp_path / "out")
     assert "_render" in result
