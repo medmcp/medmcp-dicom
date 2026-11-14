@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `convert_dcm_to_nifti` kept nothing of dcm2niix's output: its warnings (missing slices, varying spacing, enhanced/multi-frame exports) are now returned as `warnings` and shown first; a conversion that fails without producing a volume raises with dcm2niix's error instead of reporting 0 series.
+
 ## [0.1.0]
 
 First public release. `medmcp-dicom` is the DICOM stack for MedMCP — an MCP server
