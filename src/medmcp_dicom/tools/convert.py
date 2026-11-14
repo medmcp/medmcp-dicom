@@ -18,6 +18,16 @@ _INSTALL_HINT = (
 )
 
 
+def dcm2niix_messages(stdout: str, stderr: str, limit: int = 20) -> list[str]:
+    """dcm2niix's ``Warning:`` and ``Error:`` lines, de-duplicated, at most *limit*."""
+    out: list[str] = []
+    for line in (stdout + "\n" + stderr).splitlines():
+        text = line.strip()
+        if text.lower().startswith(("warning:", "error:")) and text not in out:
+            out.append(text)
+    return out[:limit]
+
+
 def convert_dcm_to_nifti(
     input_dir: Path,
     output_dir: Path,
@@ -51,6 +61,8 @@ def convert_dcm_to_nifti(
                 modality: imaging modality string (e.g. "MR", "CT")
                 series_number: SeriesNumber from DICOM header
             total_series: total number of NIfTI files created
+            warnings: dcm2niix's warning and error lines (e.g. missing slices,
+                varying slice spacing); empty when it reported none
             _render: display instructions
     """
     exe = find_dcm2niix()
@@ -62,7 +74,7 @@ def convert_dcm_to_nifti(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    subprocess.run(
+    proc = subprocess.run(
         [
             exe,
             "-o",
@@ -111,8 +123,15 @@ def convert_dcm_to_nifti(
         )
 
     n = len(converted)
+    warnings = dcm2niix_messages(proc.stdout or "", proc.stderr or "")
+    if n == 0 and proc.returncode != 0:
+        detail = "; ".join(warnings) or (proc.stderr or proc.stdout or "").strip()[-500:]
+        raise RuntimeError(f"dcm2niix failed (exit {proc.returncode}): {detail}")
     render = (
         f"Converted {n} series to NIfTI in: {output_dir}\n"
+        "If 'warnings' is not empty, give each warning first, word for word: they come "
+        "from dcm2niix and can mean a wrong or incomplete volume (missing slices, "
+        "varying slice spacing, multi-frame or derived data).\n"
         "Render a table with columns: Series # | Modality | Description | Output file.\n"
         "Use '—' for missing values. Omit 'Extra files' column unless DWI is present.\n"
         "NEXT ACTION: Display the conversion table, then stop."
@@ -121,5 +140,6 @@ def convert_dcm_to_nifti(
     return {
         "converted": converted,
         "total_series": n,
+        "warnings": warnings,
         "_render": render,
     }
