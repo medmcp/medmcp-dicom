@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `convert_dcm_to_nifti` kept nothing of dcm2niix's output: its warnings (missing slices, varying spacing, enhanced/multi-frame exports) are now returned as `warnings` and shown first; a conversion that fails without producing a volume raises with dcm2niix's error instead of reporting 0 series.
-- `convert_dcm_to_nifti` listed every NIfTI already in `output_dir` as converted, so an older conversion (or a segmentation) could be used as this call's result. It now reports only files written by this call; files that were already there are returned apart as `already_in_output_dir`, and a re-conversion that dcm2niix wrote as `<name>a.nii.gz` (it never overwrites) says which older file it sits next to.
+- `convert_dcm_to_nifti` reports only the files this call wrote; files already in `output_dir` are listed apart. Before, an older conversion or a segmentation there could be taken for this call's result.
 
 ## [0.1.0]
 
