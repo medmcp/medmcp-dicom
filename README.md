@@ -24,6 +24,7 @@ DICOM data discovery, conversion, and BIDS organisation tools for the [medmcp](h
 | `convert_dcm_to_nifti` | Convert all DICOM series in a directory to compressed NIfTI (`.nii.gz`) with JSON sidecars. For single-study use; for full datasets use `build_bids_dataset` | `input_dir: Path`, `output_dir: Path` | `{"converted": [...], "total_series": N, "_render": "..."}` |
 | `build_bids_dataset` | Convert a DICOM directory tree into a BIDS-organised dataset. Load the `dcm-to-bids` skill before calling | `dicom_root: Path`, `output_dir: Path`, `dataset_name: str \| None = None`, `anonymize: bool = True` | `{"output_dir": "...", "subjects": N, "sessions": N, "files_created": N, ..., "_render": "..."}` |
 | `inspect_nifti` | Read a NIfTI file's header and return structured metadata (shape, voxel size, TR, orientation, dtype, file size, NIfTI version). Read-only; no pixel data loaded | `path: Path` | `{"path": "...", "shape": [...], "voxel_size_mm": [...], "tr_sec": float\|null, "n_volumes": int\|null, "dtype": "...", "orientation": "...", "file_size_mb": float, "nifti_version": int, "_render": "..."}` |
+| `convert_to_nifti` | Convert Analyze 7.5 / NIfTI-1 `.hdr/.img` pairs to `.nii.gz`, reporting whether orientation is real or only assumed. Never overwrites | `input_path: Path`, `output_dir: Path \| None = None`, `recursive: bool = False`, `overwrite: bool = False` | `{"tell_the_user": [...], "written": [...], "skipped": [...], "output_dir": "...", "_render": "..."}` |
 
 ## Skill inventory
 
@@ -44,7 +45,7 @@ redistributes the `dcm2niix` binary. Each is used under its own license:
 |---|---|---|---|
 | dcm2niix | `convert_dcm_to_nifti`, `build_bids_dataset` | [`dcm2niix`](https://github.com/rordenlab/dcm2niix) package dependency, invoked as a subprocess (baked into the image) | [BSD-3-Clause](https://github.com/rordenlab/dcm2niix/blob/master/license.txt) |
 | pydicom | `explore_dicom`, DICOM header reading | [`pydicom`](https://github.com/pydicom/pydicom) package dependency | [MIT](https://github.com/pydicom/pydicom/blob/main/LICENSE) |
-| nibabel | `inspect_nifti`, `explore_bids` | [`nibabel`](https://github.com/nipy/nibabel) package dependency | [MIT](https://github.com/nipy/nibabel/blob/master/COPYING) |
+| nibabel | `inspect_nifti`, `explore_bids`, `convert_to_nifti` | [`nibabel`](https://github.com/nipy/nibabel) package dependency | [MIT](https://github.com/nipy/nibabel/blob/master/COPYING) |
 
 No pretrained model weights are bundled or redistributed — this stack runs no models.
 

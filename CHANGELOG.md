@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Conversion: `.hdr/.img` pairs (Analyze 7.5, NIfTI-1 pairs) now convert to `.nii.gz` with `convert_to_nifti`, which says when left/right is only assumed. Before, no tool could and the assistant wrote its own script.
+
 ### Fixed
 
 - `convert_dcm_to_nifti` kept nothing of dcm2niix's output: its warnings (missing slices, varying spacing, enhanced/multi-frame exports) are now returned as `warnings` and shown first; a conversion that fails without producing a volume raises with dcm2niix's error instead of reporting 0 series.

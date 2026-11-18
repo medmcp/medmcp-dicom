@@ -3,6 +3,7 @@ name: dcm-to-bids
 description: >
   Convert a DICOM directory tree into a BIDS-organised dataset with NIfTI images.
   Covers single-step NIfTI conversion and full BIDS layout creation.
+  For .hdr/.img pairs (Analyze, NIfTI pairs) call convert_to_nifti instead of writing a script.
 compatibility: Requires the medmcp-dicom MCP server (console script medmcp-dicom).
 license: Apache-2.0
 ---
