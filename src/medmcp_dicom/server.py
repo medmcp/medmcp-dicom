@@ -4,6 +4,7 @@ from importlib.resources import files as _pkg_files
 
 from mcp.server.fastmcp import FastMCP
 
+from medmcp_dicom.tools.analyze import convert_to_nifti
 from medmcp_dicom.tools.bids import build_bids_dataset
 from medmcp_dicom.tools.convert import convert_dcm_to_nifti
 from medmcp_dicom.tools.explore_bids import explore_bids
@@ -17,6 +18,7 @@ mcp.add_tool(explore_bids)
 mcp.add_tool(convert_dcm_to_nifti)
 mcp.add_tool(build_bids_dataset)
 mcp.add_tool(inspect_nifti)
+mcp.add_tool(convert_to_nifti)
 
 
 def server_config() -> dict[str, object]:
