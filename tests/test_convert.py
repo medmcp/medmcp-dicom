@@ -117,3 +117,27 @@ def test_integration_converts_dicom(tmp_path: Path) -> None:
     assert result["total_series"] >= 1
     nifti_files = list(out.glob("*.nii.gz"))
     assert len(nifti_files) >= 1
+
+
+def test_integration_never_overwrites_an_earlier_conversion(tmp_path: Path) -> None:
+    """A second conversion into the same folder adds files; the first stay as they were.
+
+    This is what makes the tool ``writes_new`` (see server.py): it runs dcm2niix
+    with ``-w 2``, which adds a suffix on a name conflict instead of overwriting.
+    """
+    dicom = tmp_path / "dicom"
+    dicom.mkdir()
+    series_uid = pydicom.uid.generate_uid()
+    study_uid = pydicom.uid.generate_uid()
+    for i in range(3):
+        _write_dicom(
+            dicom / f"slice_{i}.dcm", study_uid=study_uid, series_uid=series_uid, slice_index=i
+        )
+    out = tmp_path / "nifti"
+    convert_dcm_to_nifti(dicom, out)
+    first = {path: path.stat().st_mtime_ns for path in out.iterdir()}
+    assert first
+
+    convert_dcm_to_nifti(dicom, out)
+    assert {path: path.stat().st_mtime_ns for path in first} == first
+    assert len(list(out.iterdir())) > len(first)

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Every tool declares its effect (read-only, writes new files, destructive) for MedMCP's approval card.
+
 ### Fixed
 
 - `convert_dcm_to_nifti` kept nothing of dcm2niix's output: its warnings (missing slices, varying spacing, enhanced/multi-frame exports) are now returned as `warnings` and shown first; a conversion that fails without producing a volume raises with dcm2niix's error instead of reporting 0 series.

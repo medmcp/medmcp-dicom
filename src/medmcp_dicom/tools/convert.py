@@ -85,6 +85,8 @@ def convert_dcm_to_nifti(
             "y",  # gzip compression
             "-v",
             "0",  # minimal verbosity
+            "-w",
+            "2",  # a name taken by an earlier conversion gets a suffix, never overwritten
             str(input_dir),
         ],
         capture_output=True,
