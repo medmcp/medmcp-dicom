@@ -379,7 +379,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "dcm2niix", specifier = ">=1.0.20250506" },
-    { name = "mcp", specifier = ">=1.0" },
+    { name = "mcp", specifier = ">=1.19,<2" },
     { name = "nibabel", specifier = ">=5.0" },
     { name = "pydicom", specifier = ">=3.0" },
 ]
